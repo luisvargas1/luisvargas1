@@ -1,0 +1,94 @@
+USE db_U_matricula
+GO
+
+
+CREATE PROCEDURE [dbo].[SP_INSERTAR_REGISTRO_PERIODO2]
+(
+    
+    @NombrePeriodo     varchar(50),
+    @EstadoPeriodo     varchar(50),
+	@PeriodoFechaIncio date,
+	@PeriodoFechaFinal date,
+	@EstadoRegistro    varchar(50)
+	  	   
+	 )
+	 
+AS
+
+DECLARE @RESULTADO VARCHAR(50)
+
+ begin
+
+ 
+
+ IF EXISTS (select * from sch_Administrative.tb_Periodos where nombre_Periodo = ltrim(rtrim(@NombrePeriodo)))
+
+    SELECT @RESULTADO ='EL PERIODO YA EXISTE'
+    
+   
+	
+	 ELSE
+
+ IF  EXISTS (select * from sch_Administrative.tb_Periodos
+where @PeriodoFechaIncio BETWEEN periodo_Fechaincio and periodo_Fechafinal
+      and @PeriodoFechaFinal BETWEEN periodo_Fechaincio and periodo_Fechafinal)
+
+	 SELECT @RESULTADO = 'FECHAS DENTRO DE OTRO PERIODO'
+	 
+
+	 ELSE
+
+IF  EXISTS (select * from sch_Administrative.tb_Periodos
+where @PeriodoFechaIncio < periodo_Fechaincio 
+    and @PeriodoFechaFinal > periodo_Fechaincio)
+
+
+SELECT @RESULTADO = 'LAS FECHAS ESTAN EN OTRO PERIODO'
+
+ELSE 
+
+IF  EXISTS (select * from sch_Administrative.tb_Periodos
+where @PeriodoFechaIncio > periodo_Fechafinal 
+    and @PeriodoFechaFinal < periodo_Fechafinal)
+
+	 SELECT @RESULTADO = 'FECHAS INTERCALAN OTRO PERIODO'
+
+ ELSE 
+
+	 	  IF  EXISTS (select * from sch_Administrative.tb_Periodos
+      where @PeriodoFechaIncio > @PeriodoFechaFinal)
+
+	SELECT @RESULTADO = 'FECHA INCIAL MAYOR A FECHA FINAL'
+
+	 ELSE 
+
+BEGIN
+
+
+INSERT INTO [sch_Administrative].[tb_Periodos]
+           (
+            
+            [nombre_Periodo],
+            [estado_Periodo],
+            [periodo_Fechaincio],
+			[periodo_Fechafinal],
+			[estado_Registro]
+			
+
+		   )
+		   VALUES (@NombrePeriodo, @EstadoPeriodo,@PeriodoFechaIncio,@PeriodoFechaFinal, @EstadoRegistro)
+
+		   SELECT @RESULTADO = 'DATO GUARDADO'
+ END
+  
+ 
+ 
+ END
+
+ SELECT @RESULTADO
+
+
+GO
+
+EXEC [dbo].[SP_INSERTAR_REGISTRO_PERIODO2] @NombrePeriodo= 'ITRIMESTRE', @EstadoPeriodo = 'ACTIVO', @PeriodoFechaIncio = '2021-03-15',
+@PeriodoFechaFinal = '2021-03-01', @EstadoRegistro ='ACTIVO'
